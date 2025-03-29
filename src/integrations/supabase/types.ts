@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      scan_results: {
+        Row: {
+          biomarkers: Json | null
+          confidence: string
+          detection_result: string
+          id: string
+          image_name: string
+          image_url: string | null
+          recommendations: string[] | null
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          biomarkers?: Json | null
+          confidence: string
+          detection_result: string
+          id?: string
+          image_name: string
+          image_url?: string | null
+          recommendations?: string[] | null
+          timestamp?: string
+          user_id: string
+        }
+        Update: {
+          biomarkers?: Json | null
+          confidence?: string
+          detection_result?: string
+          id?: string
+          image_name?: string
+          image_url?: string | null
+          recommendations?: string[] | null
+          timestamp?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           dob: string

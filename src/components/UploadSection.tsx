@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
@@ -43,7 +42,6 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
   };
 
   const handleFile = (file: File) => {
-    // Check if file is an image
     if (!file.type.startsWith("image/")) {
       setError("Please upload an image file");
       toast({
@@ -54,10 +52,8 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
       return;
     }
     
-    // Reset any previous errors
     setError(null);
     
-    // Set the file and create a preview
     setFile(file);
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -70,9 +66,9 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
     if (!file) return;
     
     setUploading(true);
+    setProgress(0);
     
     try {
-      // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -85,23 +81,20 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
         return;
       }
       
-      // Upload file to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
       
-      // Simulate upload progress
       let currentProgress = 0;
       const interval = setInterval(() => {
         currentProgress += 5;
-        setProgress(Math.min(currentProgress, 95)); // Max at 95% until actual upload completes
+        setProgress(Math.min(currentProgress, 95));
         
         if (currentProgress >= 95) {
           clearInterval(interval);
         }
       }, 150);
       
-      // Upload file to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('scan_images')
         .upload(filePath, file);
@@ -110,20 +103,17 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
         throw new Error(uploadError.message);
       }
       
-      // Get public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
         .from('scan_images')
         .getPublicUrl(filePath);
       
-      // Simulate analysis (in a real app, this would be an API call)
-      const results = await simulateAnalysis(file.name, publicUrl, user.id);
+      const result = await simulateAnalysis(file.name, publicUrl, user.id);
       
       setProgress(100);
       
-      // Small delay to show 100% progress
       setTimeout(() => {
         setUploading(false);
-        onUploadComplete(results);
+        onUploadComplete(result);
         toast({
           title: "Analysis complete!",
           description: "Your scan has been successfully analyzed and saved.",
@@ -141,9 +131,8 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
       setUploading(false);
     }
   };
-  
+
   const simulateAnalysis = async (imageName: string, imageUrl: string, userId: string) => {
-    // Simulated analysis results
     const result = {
       timestamp: new Date().toISOString(),
       imageName: imageName,
@@ -162,7 +151,6 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
       imageUrl: imageUrl
     };
     
-    // Save results to Supabase
     const { data, error } = await supabase
       .from('scan_results')
       .insert({
@@ -246,7 +234,6 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
           animate={{ opacity: 1, y: 0 }}
           className="rounded-xl border border-cancer-blue/20 overflow-hidden"
         >
-          {/* Preview header */}
           <div className="bg-cancer-blue/5 p-4 flex justify-between items-center">
             <div className="flex items-center">
               <Image className="w-5 h-5 text-cancer-blue mr-2" />
@@ -262,7 +249,6 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
             </button>
           </div>
           
-          {/* Image preview */}
           <div className="p-4 bg-black/5 flex justify-center">
             {preview && (
               <img
@@ -273,7 +259,6 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
             )}
           </div>
           
-          {/* Error message if any */}
           {error && (
             <div className="p-3 bg-red-50 flex items-center text-red-700 text-sm">
               <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
@@ -281,7 +266,6 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
             </div>
           )}
           
-          {/* Upload progress */}
           {uploading && (
             <div className="p-4 bg-white">
               <div className="flex justify-between text-sm mb-1">
@@ -292,7 +276,6 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
             </div>
           )}
           
-          {/* Actions */}
           <div className="p-4 bg-white flex justify-end">
             <Button
               variant="outline"

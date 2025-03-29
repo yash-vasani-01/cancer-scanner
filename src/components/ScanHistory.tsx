@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -86,7 +85,7 @@ const ScanHistory = () => {
       const dateB = new Date(b.timestamp).getTime();
       return sortDirection === "asc" ? dateA - dateB : dateB - dateA;
     });
-  
+
   return (
     <div className="w-full">
       <h2 className="text-2xl font-bold mb-6">
