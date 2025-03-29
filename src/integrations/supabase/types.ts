@@ -9,69 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      profiles: {
+      users: {
         Row: {
-          avatar_url: string | null
-          created_at: string | null
-          email: string | null
-          full_name: string | null
-          id: string
-          updated_at: string | null
-          username: string | null
+          dob: string
+          email: string
+          gender: Database["public"]["Enums"]["gender"] | null
+          id: number
+          name: string
+          password: string
+          refresh_token: string | null
         }
         Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id: string
-          updated_at?: string | null
-          username?: string | null
+          dob: string
+          email: string
+          gender?: Database["public"]["Enums"]["gender"] | null
+          id?: number
+          name: string
+          password: string
+          refresh_token?: string | null
         }
         Update: {
-          avatar_url?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          updated_at?: string | null
-          username?: string | null
-        }
-        Relationships: []
-      }
-      scan_results: {
-        Row: {
-          biomarkers: Json | null
-          confidence: string | null
-          detection_result: string | null
-          id: string
-          image_name: string | null
-          image_url: string | null
-          recommendations: string[] | null
-          timestamp: string
-          user_id: string | null
-        }
-        Insert: {
-          biomarkers?: Json | null
-          confidence?: string | null
-          detection_result?: string | null
-          id?: string
-          image_name?: string | null
-          image_url?: string | null
-          recommendations?: string[] | null
-          timestamp?: string
-          user_id?: string | null
-        }
-        Update: {
-          biomarkers?: Json | null
-          confidence?: string | null
-          detection_result?: string | null
-          id?: string
-          image_name?: string | null
-          image_url?: string | null
-          recommendations?: string[] | null
-          timestamp?: string
-          user_id?: string | null
+          dob?: string
+          email?: string
+          gender?: Database["public"]["Enums"]["gender"] | null
+          id?: number
+          name?: string
+          password?: string
+          refresh_token?: string | null
         }
         Relationships: []
       }
@@ -83,7 +47,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      gender: "male" | "female" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
