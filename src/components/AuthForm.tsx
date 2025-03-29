@@ -87,6 +87,7 @@ const AuthForm = ({ isLogin = false }: AuthFormProps) => {
     try {
       if (isLogin) {
         // Login user with Supabase
+        console.log("Attempting login with:", formData.email);
         const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
@@ -94,6 +95,7 @@ const AuthForm = ({ isLogin = false }: AuthFormProps) => {
         
         if (error) throw error;
         
+        console.log("Login successful, session:", data.session);
         toast({
           title: "Login Successful",
           description: "Welcome back to CellScan!",
@@ -104,6 +106,7 @@ const AuthForm = ({ isLogin = false }: AuthFormProps) => {
         
       } else {
         // Register user with Supabase
+        console.log("Attempting registration with:", formData.email);
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -114,7 +117,12 @@ const AuthForm = ({ isLogin = false }: AuthFormProps) => {
           },
         });
         
-        if (error) throw error;
+        if (error) {
+          console.error("Registration error:", error);
+          throw error;
+        }
+        
+        console.log("Registration response:", data);
         
         // Check if email confirmation is required
         if (data.user && data.user.identities && data.user.identities.length === 0) {

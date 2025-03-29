@@ -15,12 +15,14 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state changed:", event, !!session);
         setIsAuthenticated(!!session);
       }
     );
 
     // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", !!session);
       setIsAuthenticated(!!session);
       
       if (!session) {

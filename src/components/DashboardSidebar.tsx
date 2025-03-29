@@ -32,6 +32,7 @@ const DashboardSidebar = ({ isCollapsed, setIsCollapsed }: DashboardSidebarProps
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
+        console.log("User data from Supabase:", user);
         const fullName = user.user_metadata?.full_name || "User";
         setUserData({ 
           name: fullName,
@@ -55,13 +56,16 @@ const DashboardSidebar = ({ isCollapsed, setIsCollapsed }: DashboardSidebarProps
 
   const handleLogout = async () => {
     try {
+      console.log("Logging out user...");
       toast({
         title: "Logging out...",
         description: "You've been successfully logged out.",
       });
       
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       
+      console.log("Logout successful");
       setTimeout(() => {
         navigate("/");
       }, 1500);
