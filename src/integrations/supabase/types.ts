@@ -39,6 +39,42 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_results: {
+        Row: {
+          biomarkers: Json | null
+          confidence: string | null
+          detection_result: string | null
+          id: string
+          image_name: string | null
+          image_url: string | null
+          recommendations: string[] | null
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          biomarkers?: Json | null
+          confidence?: string | null
+          detection_result?: string | null
+          id?: string
+          image_name?: string | null
+          image_url?: string | null
+          recommendations?: string[] | null
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          biomarkers?: Json | null
+          confidence?: string | null
+          detection_result?: string | null
+          id?: string
+          image_name?: string | null
+          image_url?: string | null
+          recommendations?: string[] | null
+          timestamp?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

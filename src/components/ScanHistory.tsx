@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Check,
@@ -12,42 +12,60 @@ import {
   Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
-// Mock data for scan history
-const mockHistory = [
-  {
-    id: "scan-001",
-    timestamp: "2023-06-15T14:30:00Z",
-    result: "normal",
-    confidence: "98.7%",
-    imageName: "lung-scan-1.jpg",
-  },
-  {
-    id: "scan-002",
-    timestamp: "2023-05-28T09:15:00Z",
-    result: "abnormal",
-    confidence: "89.2%",
-    imageName: "brain-scan-3.jpg",
-  },
-  {
-    id: "scan-003",
-    timestamp: "2023-04-10T11:20:00Z",
-    result: "normal",
-    confidence: "97.5%",
-    imageName: "chest-xray-2.jpg",
-  },
-  {
-    id: "scan-004",
-    timestamp: "2023-03-02T16:45:00Z",
-    result: "abnormal",
-    confidence: "92.1%",
-    imageName: "skin-sample-8.jpg",
-  },
-];
+interface ScanResult {
+  id: string;
+  timestamp: string;
+  image_name: string;
+  detection_result: string;
+  confidence: string;
+  image_url?: string;
+}
 
 const ScanHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [isLoading, setIsLoading] = useState(true);
+  const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    const fetchScanHistory = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          console.log("No authenticated user found");
+          setIsLoading(false);
+          return;
+        }
+        
+        const { data, error } = await supabase
+          .from('scan_results')
+          .select('id, timestamp, image_name, detection_result, confidence, image_url')
+          .order('timestamp', { ascending: false });
+        
+        if (error) {
+          throw error;
+        }
+        
+        setScanHistory(data || []);
+      } catch (error: any) {
+        console.error("Error fetching scan history:", error);
+        toast({
+          variant: "destructive",
+          title: "Failed to load scan history",
+          description: error.message || "An unexpected error occurred",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchScanHistory();
+  }, [toast]);
   
   const formatDate = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -58,9 +76,9 @@ const ScanHistory = () => {
     }).format(date);
   };
   
-  const filteredHistory = mockHistory
+  const filteredHistory = scanHistory
     .filter(scan => 
-      scan.imageName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      scan.image_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       formatDate(scan.timestamp).toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
@@ -125,7 +143,11 @@ const ScanHistory = () => {
         </div>
         
         <div className="divide-y divide-gray-100">
-          {filteredHistory.length > 0 ? (
+          {isLoading ? (
+            <div className="px-6 py-8 text-center">
+              <p className="text-gray-500">Loading scan history...</p>
+            </div>
+          ) : filteredHistory.length > 0 ? (
             filteredHistory.map((scan, index) => (
               <motion.div
                 key={scan.id}
@@ -135,7 +157,7 @@ const ScanHistory = () => {
                 className="px-6 py-4 grid grid-cols-12 gap-4 items-center hover:bg-gray-50"
               >
                 <div className="col-span-1">
-                  {scan.result === "normal" ? (
+                  {scan.detection_result?.toLowerCase() === "normal" ? (
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-green-100">
                       <Check className="w-4 h-4 text-green-600" />
                     </span>
@@ -152,12 +174,12 @@ const ScanHistory = () => {
                 </div>
                 
                 <div className="col-span-4">
-                  <span className="text-sm font-medium text-gray-700">{scan.imageName}</span>
+                  <span className="text-sm font-medium text-gray-700">{scan.image_name}</span>
                 </div>
                 
                 <div className="col-span-2">
                   <span className={`text-sm font-medium ${
-                    scan.result === "normal" 
+                    scan.detection_result?.toLowerCase() === "normal" 
                       ? "text-green-600" 
                       : "text-red-600"
                   }`}>

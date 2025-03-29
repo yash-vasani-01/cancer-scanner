@@ -5,6 +5,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Upload, X, Image, AlertCircle, Check } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from "uuid";
 
 const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) => void }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -69,27 +71,82 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
     
     setUploading(true);
     
-    // Simulate upload progress
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += 5;
-      setProgress(currentProgress);
+    try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (currentProgress >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
-          // Simulate analysis - in a real app, this would be an API call
-          simulateAnalysis();
-        }, 500);
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Authentication required",
+          description: "Please sign in to save scan results",
+        });
+        setUploading(false);
+        return;
       }
-    }, 150);
+      
+      // Upload file to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+      
+      // Simulate upload progress
+      let currentProgress = 0;
+      const interval = setInterval(() => {
+        currentProgress += 5;
+        setProgress(Math.min(currentProgress, 95)); // Max at 95% until actual upload completes
+        
+        if (currentProgress >= 95) {
+          clearInterval(interval);
+        }
+      }, 150);
+      
+      // Upload file to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('scan_images')
+        .upload(filePath, file);
+      
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+      
+      // Get public URL for the uploaded file
+      const { data: { publicUrl } } = supabase.storage
+        .from('scan_images')
+        .getPublicUrl(filePath);
+      
+      // Simulate analysis (in a real app, this would be an API call)
+      const results = await simulateAnalysis(file.name, publicUrl, user.id);
+      
+      setProgress(100);
+      
+      // Small delay to show 100% progress
+      setTimeout(() => {
+        setUploading(false);
+        onUploadComplete(results);
+        toast({
+          title: "Analysis complete!",
+          description: "Your scan has been successfully analyzed and saved.",
+        });
+      }, 1000);
+      
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      setError(error.message || "Failed to upload and analyze image");
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: error.message || "An error occurred during upload and analysis",
+      });
+      setUploading(false);
+    }
   };
   
-  const simulateAnalysis = () => {
+  const simulateAnalysis = async (imageName: string, imageUrl: string, userId: string) => {
     // Simulated analysis results
-    const results = {
+    const result = {
       timestamp: new Date().toISOString(),
-      imageName: file?.name,
+      imageName: imageName,
       detectionResult: Math.random() > 0.7 ? "abnormal" : "normal",
       confidence: (Math.random() * 20 + 80).toFixed(2) + "%",
       biomarkers: {
@@ -101,17 +158,30 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
         "Review with healthcare provider",
         "Consider follow-up scan in 3 months",
         "Maintain regular screening schedule"
-      ]
+      ],
+      imageUrl: imageUrl
     };
     
-    setTimeout(() => {
-      setUploading(false);
-      onUploadComplete(results);
-      toast({
-        title: "Analysis complete!",
-        description: "Your scan has been successfully analyzed.",
-      });
-    }, 1000);
+    // Save results to Supabase
+    const { data, error } = await supabase
+      .from('scan_results')
+      .insert({
+        user_id: userId,
+        image_name: imageName,
+        detection_result: result.detectionResult,
+        confidence: result.confidence,
+        biomarkers: result.biomarkers,
+        recommendations: result.recommendations,
+        image_url: imageUrl
+      })
+      .select();
+    
+    if (error) {
+      console.error("Error saving scan results:", error);
+      throw new Error("Failed to save scan results to database");
+    }
+    
+    return result;
   };
 
   const resetUpload = () => {

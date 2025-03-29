@@ -1,12 +1,20 @@
 
 import React from 'react';
 import { safeToFixed } from '@/utils/typeUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ResultData {
-  probability: number | string;
-  diagnosis: string;
-  confidence: number | string;
-  recommendation: string;
+  detectionResult: string;
+  confidence: string;
+  biomarkers: {
+    p53: number | string;
+    ki67: number | string;
+    her2: number | string;
+  };
+  recommendations: string[];
+  imageName: string;
+  timestamp: string;
+  imageUrl?: string;
 }
 
 interface ResultsSectionProps {
@@ -40,7 +48,8 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
     );
   }
 
-  const { probability, diagnosis, confidence, recommendation } = results;
+  const { detectionResult, confidence, biomarkers, recommendations } = results;
+  const probabilityValue = parseFloat(confidence.replace('%', ''));
 
   return (
     <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-md">
@@ -48,33 +57,70 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
         Scan Results
       </h3>
       
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600 font-medium">Probability:</span>
-          <span className="font-bold">{safeToFixed(probability)}%</span>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600 font-medium">Diagnosis:</span>
+            <span 
+              className={`font-bold ${
+                detectionResult.toLowerCase().includes("normal") 
+                  ? "text-green-600" 
+                  : "text-red-600"
+              }`}
+            >
+              {detectionResult}
+            </span>
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600 font-medium">Confidence:</span>
+            <span className="font-bold">{confidence}</span>
+          </div>
+          
+          <div className="pt-4 border-t border-gray-100">
+            <h4 className="font-medium text-gray-800 mb-2">Biomarkers:</h4>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-gray-50 p-2 rounded">
+                <div className="text-xs text-gray-500">p53</div>
+                <div className="font-medium">{safeToFixed(biomarkers.p53)}</div>
+              </div>
+              <div className="bg-gray-50 p-2 rounded">
+                <div className="text-xs text-gray-500">ki67</div>
+                <div className="font-medium">{safeToFixed(biomarkers.ki67)}</div>
+              </div>
+              <div className="bg-gray-50 p-2 rounded">
+                <div className="text-xs text-gray-500">her2</div>
+                <div className="font-medium">{safeToFixed(biomarkers.her2)}</div>
+              </div>
+            </div>
+          </div>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600 font-medium">Diagnosis:</span>
-          <span 
-            className={`font-bold ${
-              diagnosis.toLowerCase().includes("normal") 
-                ? "text-green-600" 
-                : "text-red-600"
-            }`}
-          >
-            {diagnosis}
-          </span>
-        </div>
-        
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600 font-medium">Confidence:</span>
-          <span className="font-bold">{safeToFixed(confidence)}%</span>
-        </div>
-        
-        <div className="mt-6 pt-4 border-t border-gray-100">
-          <h4 className="font-medium text-gray-800 mb-2">Recommendation:</h4>
-          <p className="text-gray-600">{recommendation}</p>
+        <div>
+          <div className="mb-4">
+            <h4 className="font-medium text-gray-800 mb-2">Recommendations:</h4>
+            <ul className="list-disc pl-5 space-y-1 text-gray-600">
+              {recommendations.map((recommendation, index) => (
+                <li key={index}>{recommendation}</li>
+              ))}
+            </ul>
+          </div>
+          
+          <div className="pt-4 border-t border-gray-100">
+            <div className="flex justify-between text-sm text-gray-500 mb-2">
+              <span>Risk Assessment</span>
+              <span>{probabilityValue}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className={`h-2.5 rounded-full ${
+                  probabilityValue < 50 ? "bg-green-500" : 
+                  probabilityValue < 80 ? "bg-yellow-500" : "bg-red-500"
+                }`} 
+                style={{ width: `${probabilityValue}%` }}
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
