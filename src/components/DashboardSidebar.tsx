@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Home,
   User,
@@ -22,8 +23,25 @@ interface DashboardSidebarProps {
 }
 
 const DashboardSidebar = ({ isCollapsed, setIsCollapsed }: DashboardSidebarProps) => {
-  // Get username from localStorage
-  const userData = JSON.parse(localStorage.getItem("user") || '{"name":"Guest"}');
+  const [userData, setUserData] = useState<{ name: string, email: string }>({ name: "Guest", email: "" });
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Get user data from Supabase
+    const getUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const fullName = user.user_metadata?.full_name || "User";
+        setUserData({ 
+          name: fullName,
+          email: user.email || ""
+        });
+      }
+    };
+    
+    getUserData();
+  }, []);
   
   const navItems = [
     { icon: Home, label: "Dashboard", path: "/dashboard" },
@@ -35,15 +53,26 @@ const DashboardSidebar = ({ isCollapsed, setIsCollapsed }: DashboardSidebarProps
     { icon: HelpCircle, label: "Help", path: "/dashboard" },
   ];
 
-  const handleLogout = () => {
-    toast({
-      title: "Logging out...",
-      description: "You've been successfully logged out.",
-    });
-    localStorage.removeItem("user");
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 1500);
+  const handleLogout = async () => {
+    try {
+      toast({
+        title: "Logging out...",
+        description: "You've been successfully logged out.",
+      });
+      
+      await supabase.auth.signOut();
+      
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast({
+        variant: "destructive",
+        title: "Logout Error",
+        description: "There was a problem logging you out. Please try again.",
+      });
+    }
   };
 
   return (

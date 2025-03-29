@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { Eye, EyeOff, Check, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthFormProps {
   isLogin?: boolean;
@@ -19,6 +20,7 @@ const AuthForm = ({ isLogin = false }: AuthFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -59,7 +61,7 @@ const AuthForm = ({ isLogin = false }: AuthFormProps) => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -79,26 +81,80 @@ const AuthForm = ({ isLogin = false }: AuthFormProps) => {
       });
       return;
     }
+
+    setIsLoading(true);
     
-    // In a real app, we would make an API call here
-    // For now, we'll simulate a successful login/signup
-    toast({
-      title: isLogin ? "Login Successful" : "Account Created",
-      description: isLogin 
-        ? "Welcome back to CellScan!" 
-        : "Your account has been created successfully.",
-    });
-    
-    // Store user data in localStorage (for demo purposes)
-    localStorage.setItem("user", JSON.stringify({
-      name: formData.name || "User",
-      email: formData.email,
-    }));
-    
-    // Redirect to dashboard
-    setTimeout(() => {
-      navigate("/dashboard");
-    }, 1000);
+    try {
+      if (isLogin) {
+        // Login user with Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Login Successful",
+          description: "Welcome back to CellScan!",
+        });
+        
+        // Redirect to dashboard
+        navigate("/dashboard");
+        
+      } else {
+        // Register user with Supabase
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.name,
+            },
+          },
+        });
+        
+        if (error) throw error;
+        
+        // Check if email confirmation is required
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+          toast({
+            title: "User already exists",
+            description: "Please login instead",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        toast({
+          title: "Account Created",
+          description: "Your account has been created successfully.",
+        });
+        
+        // If email confirmation is required
+        if (data.user && !data.session) {
+          toast({
+            title: "Email Confirmation Required",
+            description: "Please check your email to confirm your account.",
+          });
+          setTimeout(() => {
+            navigate("/login");
+          }, 3000);
+        } else {
+          // If email confirmation is not required, redirect to dashboard
+          navigate("/dashboard");
+        }
+      }
+    } catch (error: any) {
+      console.error("Authentication error:", error);
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: error.message || "An error occurred during authentication.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -134,6 +190,7 @@ const AuthForm = ({ isLogin = false }: AuthFormProps) => {
                 onChange={handleChange}
                 className={`form-input ${validationErrors.name ? "border-red-500" : ""}`}
                 placeholder="Your Name Here"
+                disabled={isLoading}
               />
               {validationErrors.name && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
@@ -159,6 +216,7 @@ const AuthForm = ({ isLogin = false }: AuthFormProps) => {
               onChange={handleChange}
               className={`form-input ${validationErrors.email ? "border-red-500" : ""}`}
               placeholder="your.email@example.com"
+              disabled={isLoading}
             />
             {validationErrors.email ? (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
@@ -187,11 +245,13 @@ const AuthForm = ({ isLogin = false }: AuthFormProps) => {
               onChange={handleChange}
               className={`form-input pr-10 ${validationErrors.password ? "border-red-500" : ""}`}
               placeholder="Enter your password"
+              disabled={isLoading}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              disabled={isLoading}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -214,11 +274,13 @@ const AuthForm = ({ isLogin = false }: AuthFormProps) => {
                 onChange={handleChange}
                 className={`form-input pr-10 ${validationErrors.confirmPassword ? "border-red-500" : ""}`}
                 placeholder="Confirm your password"
+                disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                disabled={isLoading}
               >
                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -242,8 +304,11 @@ const AuthForm = ({ isLogin = false }: AuthFormProps) => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className="btn-primary w-full mt-6"
+          disabled={isLoading}
         >
-          {isLogin ? "Login!" : "Sign Up!"}
+          {isLoading 
+            ? (isLogin ? "Logging in..." : "Signing up...") 
+            : (isLogin ? "Login!" : "Sign Up!")}
         </motion.button>
         
         <div className="mt-6 text-center text-sm">
