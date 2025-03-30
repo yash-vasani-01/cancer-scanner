@@ -1,48 +1,22 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import UploadSection from "@/components/UploadSection";
-import ResultsSection from "@/components/ResultsSection";
 import ScanHistory from "@/components/ScanHistory";
 
-const Dashboard = () => {
+const Scans = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [scanResults, setScanResults] = useState<any>(null);
-  const [userData, setUserData] = useState({ name: "Guest" });
-  
-  useEffect(() => {
-    // Get user data from Supabase
-    const getUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        const fullName = user.user_metadata?.full_name || "User";
-        setUserData({ name: fullName });
-      }
-    };
-    
-    getUserData();
-    
-    // Also check localStorage as a fallback
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      if (parsedUser.name !== "Guest") {
-        setUserData(parsedUser);
-      }
-    }
-  }, []);
   
   const handleUploadComplete = (results: any) => {
     setScanResults(results);
     
-    // Scroll to results section after a short delay
+    // Scroll to scan history section after a short delay
     setTimeout(() => {
-      const resultsSection = document.getElementById("results-section");
-      if (resultsSection) {
-        resultsSection.scrollIntoView({ behavior: "smooth" });
+      const historySection = document.getElementById("history-section");
+      if (historySection) {
+        historySection.scrollIntoView({ behavior: "smooth" });
       }
     }, 500);
   };
@@ -61,24 +35,20 @@ const Dashboard = () => {
             >
               <div className="bg-white rounded-xl border border-cancer-blue/10 shadow-sm p-6">
                 <h1 className="text-2xl md:text-3xl font-bold mb-2">
-                  <span className="text-gray-800">Hey, </span>
                   <span className="text-gradient bg-gradient-to-r from-cancer-blue to-cancer-purple bg-clip-text text-transparent">
-                    {userData.name}!
+                    Scan Management
                   </span>
                 </h1>
                 <p className="text-gray-600">
-                  Ready to Scan and Conquer? Upload your images for quirky yet powerful cancer detection.
+                  Upload new scans or view your scan history below.
                 </p>
               </div>
             </motion.div>
             
             <UploadSection onUploadComplete={handleUploadComplete} />
             
-            <div id="results-section">
-              <ResultsSection results={scanResults} />
-            </div>
-            
             <motion.div
+              id="history-section"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
@@ -93,4 +63,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Scans;

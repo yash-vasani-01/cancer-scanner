@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -9,7 +9,6 @@ import {
   User,
   FileText,
   Settings,
-  Bell,
   HelpCircle,
   LogOut,
   ChevronLeft,
@@ -25,6 +24,7 @@ interface DashboardSidebarProps {
 const DashboardSidebar = ({ isCollapsed, setIsCollapsed }: DashboardSidebarProps) => {
   const [userData, setUserData] = useState<{ name: string, email: string }>({ name: "Guest", email: "" });
   const navigate = useNavigate();
+  const location = useLocation();
   
   useEffect(() => {
     // Get user data from Supabase
@@ -38,6 +38,9 @@ const DashboardSidebar = ({ isCollapsed, setIsCollapsed }: DashboardSidebarProps
           name: fullName,
           email: user.email || ""
         });
+        
+        // Store in localStorage for components that need it
+        localStorage.setItem("user", JSON.stringify({ name: fullName, email: user.email }));
       }
     };
     
@@ -46,12 +49,11 @@ const DashboardSidebar = ({ isCollapsed, setIsCollapsed }: DashboardSidebarProps
   
   const navItems = [
     { icon: Home, label: "Dashboard", path: "/dashboard" },
-    { icon: Activity, label: "Scans", path: "/dashboard" },
-    { icon: FileText, label: "Reports", path: "/dashboard" },
-    { icon: User, label: "Profile", path: "/dashboard" },
-    { icon: Bell, label: "Notifications", path: "/dashboard" },
-    { icon: Settings, label: "Settings", path: "/dashboard" },
-    { icon: HelpCircle, label: "Help", path: "/dashboard" },
+    { icon: Activity, label: "Scans", path: "/scans" },
+    { icon: FileText, label: "Reports", path: "/reports" },
+    { icon: User, label: "Profile", path: "/profile" },
+    { icon: Settings, label: "Settings", path: "/settings" },
+    { icon: HelpCircle, label: "Help", path: "/help" },
   ];
 
   const handleLogout = async () => {
@@ -66,6 +68,7 @@ const DashboardSidebar = ({ isCollapsed, setIsCollapsed }: DashboardSidebarProps
       if (error) throw error;
       
       console.log("Logout successful");
+      localStorage.removeItem("user");
       setTimeout(() => {
         navigate("/");
       }, 1500);
@@ -77,6 +80,10 @@ const DashboardSidebar = ({ isCollapsed, setIsCollapsed }: DashboardSidebarProps
         description: "There was a problem logging you out. Please try again.",
       });
     }
+  };
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
   };
 
   return (
@@ -132,7 +139,11 @@ const DashboardSidebar = ({ isCollapsed, setIsCollapsed }: DashboardSidebarProps
             <li key={index}>
               <Link
                 to={item.path}
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-cancer-blue/5 text-gray-700 hover:text-cancer-blue transition-colors"
+                className={`flex items-center space-x-3 px-3 py-2 rounded-lg ${
+                  isActive(item.path) 
+                    ? "bg-cancer-blue/10 text-cancer-blue" 
+                    : "hover:bg-cancer-blue/5 text-gray-700 hover:text-cancer-blue"
+                } transition-colors`}
               >
                 <item.icon size={20} />
                 {!isCollapsed && <span>{item.label}</span>}

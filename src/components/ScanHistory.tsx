@@ -1,5 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   Check,
   AlertCircle,
@@ -29,6 +31,7 @@ const ScanHistory = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   useEffect(() => {
     const fetchScanHistory = async () => {
@@ -73,6 +76,10 @@ const ScanHistory = () => {
       day: 'numeric',
       year: 'numeric',
     }).format(date);
+  };
+
+  const handleViewDetails = (scanId: string) => {
+    navigate(`/scan-details/${scanId}`);
   };
   
   const filteredHistory = scanHistory
@@ -187,7 +194,12 @@ const ScanHistory = () => {
                 </div>
                 
                 <div className="col-span-2 text-right">
-                  <Button variant="ghost" size="sm" className="text-cancer-blue hover:text-cancer-purple">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-cancer-blue hover:text-cancer-purple"
+                    onClick={() => handleViewDetails(scan.id)}
+                  >
                     View Details
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
