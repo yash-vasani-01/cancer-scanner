@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
 import ScanDetails from "./pages/ScanDetails";
+import Quiz from "./pages/Quiz";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoadingScreen from "./components/LoadingScreen";
 
@@ -75,6 +76,11 @@ const App = () => {
             <Route path="/help" element={
               <ProtectedRoute>
                 <Help />
+              </ProtectedRoute>
+            } />
+            <Route path="/quiz" element={
+              <ProtectedRoute>
+                <Quiz />
               </ProtectedRoute>
             } />
             <Route path="/scan-details/:scanId" element={

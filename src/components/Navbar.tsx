@@ -58,16 +58,27 @@ const Navbar = () => {
 
             <div className="flex items-center space-x-3">
               {isLoggedIn ? (
-                <Link to="/dashboard">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="flex items-center space-x-2 py-2 px-4 rounded-lg bg-cancer-blue/10 text-cancer-blue hover:bg-cancer-blue/20 transition-colors"
-                  >
-                    <UserCircle size={18} />
-                    <span>Dashboard</span>
-                  </motion.button>
-                </Link>
+                <div className="flex space-x-3">
+                  <Link to="/quiz">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="py-2 px-4 rounded-lg border border-cancer-blue text-cancer-blue hover:bg-cancer-blue/10 transition-colors"
+                    >
+                      Take Quiz
+                    </motion.button>
+                  </Link>
+                  <Link to="/dashboard">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex items-center space-x-2 py-2 px-4 rounded-lg bg-cancer-blue/10 text-cancer-blue hover:bg-cancer-blue/20 transition-colors"
+                    >
+                      <UserCircle size={18} />
+                      <span>Dashboard</span>
+                    </motion.button>
+                  </Link>
+                </div>
               ) : (
                 <>
                   <Link to="/login">
@@ -133,15 +144,25 @@ const Navbar = () => {
 
             <div className="flex flex-col space-y-3 mt-auto mb-10">
               {isLoggedIn ? (
-                <Link
-                  to="/dashboard"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <button className="w-full py-2 px-4 rounded-lg bg-cancer-blue/10 text-cancer-blue hover:bg-cancer-blue/20 transition-colors flex items-center justify-center space-x-2">
-                    <UserCircle size={18} />
-                    <span>Dashboard</span>
-                  </button>
-                </Link>
+                <>
+                  <Link
+                    to="/quiz"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <button className="w-full py-2 px-4 rounded-lg border border-cancer-blue text-cancer-blue hover:bg-cancer-blue/10 transition-colors">
+                      Take Quiz
+                    </button>
+                  </Link>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <button className="w-full py-2 px-4 rounded-lg bg-cancer-blue/10 text-cancer-blue hover:bg-cancer-blue/20 transition-colors flex items-center justify-center space-x-2">
+                      <UserCircle size={18} />
+                      <span>Dashboard</span>
+                    </button>
+                  </Link>
+                </>
               ) : (
                 <>
                   <Link

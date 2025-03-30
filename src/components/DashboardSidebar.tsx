@@ -13,7 +13,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Activity
+  Activity,
+  Clipboard
 } from "lucide-react";
 
 interface DashboardSidebarProps {
@@ -51,6 +52,7 @@ const DashboardSidebar = ({ isCollapsed, setIsCollapsed }: DashboardSidebarProps
     { icon: Home, label: "Dashboard", path: "/dashboard" },
     { icon: Activity, label: "Scans", path: "/scans" },
     { icon: FileText, label: "Reports", path: "/reports" },
+    { icon: Clipboard, label: "Quiz", path: "/quiz" },
     { icon: User, label: "Profile", path: "/profile" },
     { icon: Settings, label: "Settings", path: "/settings" },
     { icon: HelpCircle, label: "Help", path: "/help" },

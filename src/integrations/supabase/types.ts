@@ -9,6 +9,66 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      questions: {
+        Row: {
+          category: string | null
+          id: number
+          next_question_logic: Json | null
+          options: Json | null
+          question_text: string
+          question_type: string
+          weight: number | null
+        }
+        Insert: {
+          category?: string | null
+          id?: number
+          next_question_logic?: Json | null
+          options?: Json | null
+          question_text: string
+          question_type: string
+          weight?: number | null
+        }
+        Update: {
+          category?: string | null
+          id?: number
+          next_question_logic?: Json | null
+          options?: Json | null
+          question_text?: string
+          question_type?: string
+          weight?: number | null
+        }
+        Relationships: []
+      }
+      risk_assessments: {
+        Row: {
+          advice: string
+          foods_to_avoid: string[]
+          foods_to_eat: string[]
+          id: number
+          max_score: number
+          min_score: number
+          risk_level: string
+        }
+        Insert: {
+          advice: string
+          foods_to_avoid: string[]
+          foods_to_eat: string[]
+          id?: number
+          max_score: number
+          min_score: number
+          risk_level: string
+        }
+        Update: {
+          advice?: string
+          foods_to_avoid?: string[]
+          foods_to_eat?: string[]
+          id?: number
+          max_score?: number
+          min_score?: number
+          risk_level?: string
+        }
+        Relationships: []
+      }
       scan_results: {
         Row: {
           biomarkers: Json | null
@@ -44,6 +104,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_responses: {
+        Row: {
+          created_at: string | null
+          id: number
+          question_id: number
+          response: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          question_id: number
+          response: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          question_id?: number
+          response?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
