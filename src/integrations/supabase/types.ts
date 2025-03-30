@@ -14,30 +14,44 @@ export type Database = {
           category: string | null
           id: number
           next_question_logic: Json | null
-          options: Json | null
+          options: Json
+          parent_id: number | null
           question_text: string
           question_type: string
-          weight: number | null
+          response_trigger: string | null
+          weight: number
         }
         Insert: {
           category?: string | null
           id?: number
           next_question_logic?: Json | null
-          options?: Json | null
+          options: Json
+          parent_id?: number | null
           question_text: string
           question_type: string
-          weight?: number | null
+          response_trigger?: string | null
+          weight?: number
         }
         Update: {
           category?: string | null
           id?: number
           next_question_logic?: Json | null
-          options?: Json | null
+          options?: Json
+          parent_id?: number | null
           question_text?: string
           question_type?: string
-          weight?: number | null
+          response_trigger?: string | null
+          weight?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "questions_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       risk_assessments: {
         Row: {

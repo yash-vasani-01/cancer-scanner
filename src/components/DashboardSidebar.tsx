@@ -96,7 +96,7 @@ const DashboardSidebar = ({ isCollapsed, setIsCollapsed }: DashboardSidebarProps
     >
       {/* Header */}
       <div className="p-4 flex items-center justify-between border-b border-cancer-blue/10">
-        <Link to="/dashboard" className="flex items-center space-x-2">
+        <Link to="/" className="flex items-center space-x-2">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cancer-blue to-cancer-purple flex items-center justify-center flex-shrink-0">
             <span className="text-white font-bold text-lg">CS</span>
           </div>

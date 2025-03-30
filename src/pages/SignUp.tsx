@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AuthForm from "@/components/AuthForm";
-import ParticleBackground from "@/components/ParticleBackground";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -20,7 +19,6 @@ const SignUp = () => {
   
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <ParticleBackground />
       <Navbar />
       
       <main className="flex-1 flex items-center justify-center px-4 py-20">

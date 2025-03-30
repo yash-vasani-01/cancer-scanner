@@ -82,11 +82,11 @@ const ParticleBackground = () => {
   }, []);
   
   return (
-    <div className="particle-container">
+    <div className="particle-container fixed inset-0 w-full h-full pointer-events-none z-0">
       {particles.map((particle) => (
         <div
           key={particle.id}
-          className="particle"
+          className="particle absolute"
           style={{
             left: `${particle.x}px`,
             top: `${particle.y}px`,
