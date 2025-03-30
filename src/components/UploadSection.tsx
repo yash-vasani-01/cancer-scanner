@@ -82,8 +82,7 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
       }
       
       const fileExt = file.name.split('.').pop();
-      const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+      const fileName = `${user.id}_${uuidv4()}`;
       
       let currentProgress = 0;
       const interval = setInterval(() => {
@@ -95,19 +94,41 @@ const UploadSection = ({ onUploadComplete }: { onUploadComplete: (result: any) =
         }
       }, 150);
       
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('scan_images')
-        .upload(filePath, file);
+      const uploadToCloudinary = async () => {
+        const reader = new FileReader();
+        return new Promise((resolve, reject) => {
+          reader.onload = async (e) => {
+            const base64Image = e.target?.result;
+            
+            try {
+              const { data, error } = await supabase.functions.invoke('upload-to-cloudinary', {
+                body: {
+                  image: base64Image,
+                  fileName: fileName
+                }
+              });
+              
+              if (error) throw error;
+              
+              resolve(data);
+            } catch (err) {
+              reject(err);
+            }
+          };
+          reader.onerror = (err) => reject(err);
+          reader.readAsDataURL(file);
+        });
+      };
       
-      if (uploadError) {
-        throw new Error(uploadError.message);
+      const cloudinaryResponse: any = await uploadToCloudinary();
+      
+      if (!cloudinaryResponse.success) {
+        throw new Error(cloudinaryResponse.error || "Failed to upload to Cloudinary");
       }
       
-      const { data: { publicUrl } } = supabase.storage
-        .from('scan_images')
-        .getPublicUrl(filePath);
+      const imageUrl = cloudinaryResponse.url;
       
-      const result = await simulateAnalysis(file.name, publicUrl, user.id);
+      const result = await simulateAnalysis(file.name, imageUrl, user.id);
       
       setProgress(100);
       
