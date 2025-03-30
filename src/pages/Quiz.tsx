@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -200,53 +200,100 @@ const Quiz = () => {
     setRiskAssessment(null);
   };
 
+  // Page transition variants
+  const pageVariants = {
+    initial: { opacity: 0 },
+    animate: { 
+      opacity: 1,
+      transition: { duration: 0.5, when: "beforeChildren", staggerChildren: 0.2 }
+    },
+    exit: { opacity: 0, transition: { duration: 0.3 } }
+  };
+
+  const itemVariants = {
+    initial: { y: 20, opacity: 0 },
+    animate: { y: 0, opacity: 1, transition: { duration: 0.5 } },
+    exit: { y: -20, opacity: 0, transition: { duration: 0.3 } }
+  };
+
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gradient-to-br from-purple-50 to-blue-50 overflow-hidden">
       <DashboardSidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       
       <div className="flex-1 flex flex-col overflow-y-auto">
         <div className="p-6">
-          <div className="flex flex-col gap-8 max-w-6xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="bg-white rounded-xl border border-cancer-blue/10 shadow-sm p-6">
+          <motion.div 
+            className="flex flex-col gap-8 max-w-6xl mx-auto"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <motion.div variants={itemVariants}>
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl border-2 border-purple-100 shadow-lg p-6">
                 <h1 className="text-2xl md:text-3xl font-bold mb-2">
                   <span className="text-gradient bg-gradient-to-r from-cancer-blue to-cancer-purple bg-clip-text text-transparent">
                     Cancer Risk Assessment Quiz
                   </span>
                 </h1>
                 <p className="text-gray-600">
-                  Answer a few questions to help us assess your cancer risk factors.
+                  Answer a few questions to help us assess your cancer risk factors and provide personalized recommendations.
                 </p>
               </div>
             </motion.div>
             
-            {isLoading ? (
-              <div className="bg-white rounded-xl border border-cancer-blue/10 shadow-sm p-6 flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cancer-blue"></div>
-              </div>
-            ) : quizCompleted ? (
-              <QuizResults 
-                score={score} 
-                riskAssessment={riskAssessment} 
-                resetQuiz={resetQuiz} 
-              />
-            ) : questions.length > 0 ? (
-              <QuizComponent 
-                question={questions[currentQuestionIndex]} 
-                onResponse={handleResponse}
-                currentQuestion={currentQuestionIndex + 1}
-                totalQuestions={questions.length}
-              />
-            ) : (
-              <div className="bg-white rounded-xl border border-cancer-blue/10 shadow-sm p-6">
-                <p className="text-center text-gray-600">No questions available. Please try again later.</p>
-              </div>
-            )}
-          </div>
+            <AnimatePresence mode="wait">
+              {isLoading ? (
+                <motion.div 
+                  key="loading"
+                  variants={itemVariants}
+                  className="bg-white/80 backdrop-blur-sm rounded-xl border-2 border-purple-100 shadow-lg p-8 flex flex-col justify-center items-center h-64"
+                >
+                  <motion.div
+                    animate={{ 
+                      rotate: 360,
+                      transition: { duration: 2, repeat: Infinity, ease: "linear" }
+                    }}
+                    className="mb-4"
+                  >
+                    <div className="w-12 h-12 border-4 border-cancer-blue border-t-transparent rounded-full"></div>
+                  </motion.div>
+                  <p className="text-center text-gray-600">Loading your personalized quiz...</p>
+                </motion.div>
+              ) : quizCompleted ? (
+                <motion.div
+                  key="results"
+                  variants={itemVariants}
+                >
+                  <QuizResults 
+                    score={score} 
+                    riskAssessment={riskAssessment} 
+                    resetQuiz={resetQuiz} 
+                  />
+                </motion.div>
+              ) : questions.length > 0 ? (
+                <motion.div
+                  key={`question-${currentQuestionIndex}`}
+                  variants={itemVariants}
+                >
+                  <QuizComponent 
+                    question={questions[currentQuestionIndex]} 
+                    onResponse={handleResponse}
+                    currentQuestion={currentQuestionIndex + 1}
+                    totalQuestions={questions.length}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="no-questions"
+                  variants={itemVariants}
+                  className="bg-white/80 backdrop-blur-sm rounded-xl border-2 border-purple-100 shadow-lg p-6"
+                >
+                  <p className="text-center text-gray-600">No questions available. Please try again later.</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </div>
       </div>
     </div>
